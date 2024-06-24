@@ -1,0 +1,4 @@
+#+title: Zig-Calc
+#+author: tusharhero
+#+email: tusharhero@sdf.org
+A Calculator written in Zig. Also see [[https://github.com/tusharhero/c-calc][c-calc]].
