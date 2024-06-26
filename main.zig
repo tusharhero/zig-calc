@@ -23,7 +23,7 @@ const max_size = 32768;
 const Operators = enum(u8) {
     plus = '+',
     minus = '-',
-    multiple = '*',
+    multiplication = '*',
     division = '/',
     fn toChar(self: Operators) u8 {
         return @enumToInt(self);
@@ -36,7 +36,7 @@ const Operators = enum(u8) {
     }
 };
 const Token = union(enum) {
-    number: u64,
+    number: i64,
     operator: Operators,
 };
 
@@ -59,7 +59,7 @@ fn cleanInput(allocator: std.mem.Allocator, input: []u8) ![]u8 {
 
 fn addNumberString(number_string: *std.ArrayList(u8), tokens: *std.ArrayList(Token)) !void {
     try tokens.append(Token{ .number = try std.fmt.parseInt(
-        u64,
+        i64,
         number_string.toOwnedSlice(),
         10,
     ) });
@@ -97,6 +97,39 @@ fn tokenizer(allocator: std.mem.Allocator, string: []u8) !std.ArrayList(Token) {
     return tokens;
 }
 
+fn calculate(tokens: std.ArrayList(Token)) i64 {
+    var sum = tokens.items[0].number;
+    var current_number = sum;
+    var current_operator = tokens.items[1].operator;
+    var index: u64 = 2;
+    while (index < tokens.items.len) : (index += 1) {
+        var token = tokens.items[index];
+        switch (token) {
+            .operator => {
+                current_operator = token.operator;
+            },
+            .number => {
+                current_number = token.number;
+            },
+        }
+        switch (current_operator) {
+            .plus => {
+                sum += current_number;
+            },
+            .minus => {
+                sum -= current_number;
+            },
+            .multiplication => {
+                sum *= current_number;
+            },
+            .division => {
+                sum = @divFloor(sum, current_number);
+            },
+        }
+    }
+    return sum;
+}
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
@@ -108,6 +141,6 @@ pub fn main() !void {
     }) |input| : (allocator.free(input)) {
         var tokens = try tokenizer(allocator, input);
         defer tokens.deinit();
-        try stdout.print("{any}\n", .{tokens.items});
+        try stdout.print("{d}\n", .{calculate(tokens)});
     }
 }
