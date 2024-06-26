@@ -36,7 +36,7 @@ const Operators = enum(u8) {
     }
 };
 const Token = union(enum) {
-    number: i64,
+    number: f64,
     operator: Operators,
 };
 
@@ -58,10 +58,9 @@ fn cleanInput(allocator: std.mem.Allocator, input: []u8) ![]u8 {
 }
 
 fn addNumberString(number_string: *std.ArrayList(u8), tokens: *std.ArrayList(Token)) !void {
-    try tokens.append(Token{ .number = try std.fmt.parseInt(
-        i64,
+    try tokens.append(Token{ .number = try std.fmt.parseFloat(
+        f64,
         number_string.toOwnedSlice(),
-        10,
     ) });
 }
 
@@ -78,9 +77,10 @@ fn tokenizer(allocator: std.mem.Allocator, string: []u8) !std.ArrayList(Token) {
 
     for (cleaned_string) |c| {
         var is_digit = isDigit(c);
+        var is_period = (c == '.');
         var is_operator = isOperator(c);
 
-        if (is_digit) {
+        if (is_digit or is_period) {
             in_number = true;
             try number_string.append(c);
         } else if (is_operator) {
@@ -97,7 +97,7 @@ fn tokenizer(allocator: std.mem.Allocator, string: []u8) !std.ArrayList(Token) {
     return tokens;
 }
 
-fn calculate(tokens: std.ArrayList(Token)) i64 {
+fn calculate(tokens: std.ArrayList(Token)) f64 {
     check: {
         switch (tokens.items.len) {
             0 => return 0,
@@ -123,7 +123,7 @@ fn calculate(tokens: std.ArrayList(Token)) i64 {
                     .plus => sum += current_number,
                     .minus => sum -= current_number,
                     .multiplication => sum *= current_number,
-                    .division => sum = @divFloor(sum, current_number),
+                    .division => sum /= current_number,
                 }
             },
             .operator => current_operator = token.operator,
@@ -143,6 +143,6 @@ pub fn main() !void {
     }) |input| : (allocator.free(input)) {
         var tokens = try tokenizer(allocator, input);
         defer tokens.deinit();
-        try stdout.print("{d}\n", .{calculate(tokens)});
+        try stdout.print("{d:1}\n", .{calculate(tokens)});
     }
 }
