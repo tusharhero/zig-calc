@@ -98,6 +98,18 @@ fn tokenizer(allocator: std.mem.Allocator, string: []u8) !std.ArrayList(Token) {
 }
 
 fn calculate(tokens: std.ArrayList(Token)) i64 {
+    check: {
+        switch (tokens.items.len) {
+            0 => return 0,
+            1 => {
+                switch (tokens.items[0]) {
+                    .operator => return 0,
+                    .number => return tokens.items[0].number,
+                }
+            },
+            else => break :check,
+        }
+    }
     var sum = tokens.items[0].number;
     var current_number = sum;
     var current_operator = tokens.items[1].operator;
