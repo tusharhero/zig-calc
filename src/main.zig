@@ -105,14 +105,16 @@ fn calculate(tokens: std.ArrayList(Token)) i64 {
     while (index < tokens.items.len) : (index += 1) {
         var token = tokens.items[index];
         switch (token) {
-            .number => current_number = token.number,
+            .number => {
+                current_number = token.number;
+                switch (current_operator) {
+                    .plus => sum += current_number,
+                    .minus => sum -= current_number,
+                    .multiplication => sum *= current_number,
+                    .division => sum = @divFloor(sum, current_number),
+                }
+            },
             .operator => current_operator = token.operator,
-        }
-        switch (current_operator) {
-            .plus => sum += current_number,
-            .minus => sum -= current_number,
-            .multiplication => sum *= current_number,
-            .division => sum = @divFloor(sum, current_number),
         }
     }
     return sum;
