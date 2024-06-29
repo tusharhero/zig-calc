@@ -50,7 +50,8 @@ fn cleanInput(allocator: std.mem.Allocator, input: []u8) ![]u8 {
     for (input) |c| {
         var is_digit: bool = isDigit(c);
         var is_operator: bool = isOperator(c);
-        if (is_digit or is_operator) {
+        var is_period = (c == '.');
+        if (is_digit or is_operator or is_period) {
             try cleaned_input.append(c);
         }
     }
